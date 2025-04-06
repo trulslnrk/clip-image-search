@@ -1,7 +1,5 @@
 # TODO(tl): Fix these
 /data
-/models
-/src
 
 *.env
 
