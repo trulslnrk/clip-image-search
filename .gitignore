@@ -1,0 +1,28 @@
+azure.err
+.DS_Store
+.vagrant/
+.npm
+npm-debug.log
+log/
+node_modules/*
+test/node_modules
+!src/node_modules
+newrelic_agent.log
+.projectile
+locales-export/
+yarn-error.log
+
+# Emacs temp files
+*~
+\#*#
+
+# Text editor files
+.vscode
+
+# =========================
+# Windows detritus
+# =========================
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
