@@ -19,7 +19,7 @@ async def upload_image(file: UploadFile = File(...)):
 
     return {"message": "File uploaded successfully"}
 
-@app.get("/search/text")
+@app.get("/api/search/text")
 async def search_text(query: str = Query(..., description="Text to search for")):
     try:
         results = search_by_text(query)
@@ -27,7 +27,7 @@ async def search_text(query: str = Query(..., description="Text to search for"))
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
     
-@app.post("/search/image")
+@app.post("/api/search/image")
 async def search_image(image: UploadFile = File(...)):
     try:
         results = search_by_image(image)
