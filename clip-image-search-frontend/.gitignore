@@ -1,1 +1,14 @@
-/folder_test
+.DS_Store
+.npm
+node_modules/*
+dist/
+routeTree.gen.ts
+coverage/
+
+# Text editor files
+.vscode
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+

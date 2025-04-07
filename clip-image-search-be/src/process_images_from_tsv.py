@@ -15,24 +15,14 @@ processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 # Directory setup
 DATA_DIR = "data/"
-EMBEDDINGS_FILE = "models/faiss_index.bin"
-DB_FILE = "models/metadata.db"
+EMBEDDINGS_FILE = "../models/faiss_index.bin"
+DB_FILE = "../models/metadata.db"
 
-# # Ensure models directory exists
-# os.makedirs("models", exist_ok=True)
-# # Ensure data directory exists
-# os.makedirs(DATA_DIR, exist_ok=True)
-# # Ensure metadata directory exists
-# os.makedirs("metadata", exist_ok=True)
-# # Ensure FAISS index file exists    
 
 # FAISS Index
-embedding_dim = 512  # CLIP's output embedding sizeD
+embedding_dim = 512  # CLIP's output embedding size, with clip-vit-base-patch32 it should be 512
 if os.path.exists(EMBEDDINGS_FILE):
     index = faiss.read_index(EMBEDDINGS_FILE)
-# else:
-#     print("FAISS index not found, creating a new one...")
-#     index = faiss.IndexFlatL2(512)  # Assuming 512-dimensional embeddings
 
 # Function to generate embeddings
 def generate_embedding_from_image(image):
@@ -53,12 +43,11 @@ def process_images_from_tsv():
     with open("data/photos.tsv000", "r", encoding="utf-8") as file:
         reader = csv.DictReader(file, delimiter="\t")
         for index, row in enumerate(reader):
-            # Check if the image already exists in the directory
             image_url = row["photo_image_url"]
             image_id = row["photo_id"]
             description = row.get("photo_description", "")
             image_path = os.path.join(DATA_DIR, f"{image_id}.jpg")
-            if not os.path.exists(image_path) and index < 15:
+            if not os.path.exists(image_path):
                 # Download the image if it doesn't exist
                 try:
                 # Download the image
@@ -67,30 +56,36 @@ def process_images_from_tsv():
                     image = Image.open(BytesIO(response.content)).convert("RGB")
                     # image.save(image_path)
 
-                                    # Generate embedding
+                    # Generate embedding
                     embedding = generate_embedding_from_image(image)
-                    print(f"Generated embedding for image ID {image_id}")
                     embeddings.append(embedding)
 
                     # Save metadata
-                    print(f"Saving metadata for image ID {image_id}")
                     metadata.append((image_id, image_url, description))
+                    
+                    if index % 100 == 0:
+                        print(f"Finished with batch, at element: {index}")
 
                 except Exception as e:
                     print(f"Failed to process image from URL {image_url}: {e}")
 
+
+
+    print(f"Added embedding for {len(embedding)} pictures")
     # Convert to NumPy array & add to FAISS
     embeddings = np.vstack(embeddings)
     index = faiss.IndexFlatL2(512)
     index.add(embeddings)
     
-
+    
     # Save FAISS index
     faiss.write_index(index, EMBEDDINGS_FILE)
+    print("Added index to file")
     
     # Save metadata to SQLite
     create_metadata_db(DB_FILE)
     insert_metadata(DB_FILE, metadata)
+    print(f"Added metadata for {len(metadata)}")
 
 if __name__ == "__main__":
     process_images_from_tsv()
