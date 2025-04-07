@@ -1,12 +1,11 @@
 import sqlite3
 from fastapi import HTTPException, UploadFile
+import torch
 import numpy as np
 from transformers import CLIPProcessor, CLIPModel
 from PIL import Image
 import io
 import faiss
-from sklearn.cluster import KMeans
-from sklearn.metrics import pairwise_distances_argmin_min
 
 # Load CLIP model & processor
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
@@ -58,47 +57,7 @@ def search_by_image(image: UploadFile):
     return search_faiss(query_vector)
 
 def search_faiss(query_vector: np.ndarray):
-    distances, indices = index.search(query_vector, k=100)
-    all_metadata = get_metadata_by_indices("models/metadata.db", indices.tolist())
-    all_embeddings = [index.reconstruct(int(idx)) for idx in indices[0]]
-    print(distances)
+    _, indices = index.search(query_vector, k=1)
+    metadata = get_metadata_by_indices("models/metadata.db", indices.tolist())
     
-        # Separate best match and rest
-    best_index = int(indices[0][0])
-    best_embedding = all_embeddings[0]
-    best_metadata = all_metadata[0]
-
-    remaining_embeddings = all_embeddings[1:]
-    remaining_indices = indices[0][1:]
-    remaining_metadata = all_metadata[1:]
-    
-        # Cluster remaining 99 into 6 clusters
-    n_clusters = 6
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init="auto")
-    kmeans.fit(remaining_embeddings)
-
-    # Find closest embedding to each centroid
-    closest_indices, _ = pairwise_distances_argmin_min(kmeans.cluster_centers_, remaining_embeddings)
-
-    # Collect cluster representatives
-    cluster_representatives = []
-    for i in closest_indices:
-        rep_index = int(remaining_indices[i])
-        rep_embedding = remaining_embeddings[i]
-        rep_metadata = remaining_metadata[i]
-        cluster_representatives.append({
-            "index": rep_index,
-            "embedding": rep_embedding.tolist(),
-            "metadata": rep_metadata
-        })
-
-    
-    # Return results
-    return {
-        "best_match": {
-            "index": best_index,
-            "embedding": best_embedding.tolist(),
-            "metadata": best_metadata
-        },
-        "clusters": cluster_representatives
-    }
+    return {"indices": indices.tolist(), "metadata": metadata}
