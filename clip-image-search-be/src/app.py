@@ -1,8 +1,8 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Query, HTTPException
+from fastapi.responses import JSONResponse
 import shutil
 import os
-from src.search import search_images
-from src.process_images import process_images
+from src.search import search_by_text, search_by_image
 
 app = FastAPI()
 
@@ -19,7 +19,18 @@ async def upload_image(file: UploadFile = File(...)):
 
     return {"message": "File uploaded successfully"}
 
-@app.get("/search/")
-async def search(query: str):
-    results = search_images(query)
-    return {"results": results}
+@app.get("/search/text")
+async def search_text(query: str = Query(..., description="Text to search for")):
+    try:
+        results = search_by_text(query)
+        return JSONResponse(content=results)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=400)
+    
+@app.post("/search/image")
+async def search_image(image: UploadFile = File(...)):
+    try:
+        results = search_by_image(image)
+        return JSONResponse(content=results)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=400)
