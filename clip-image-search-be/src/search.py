@@ -89,7 +89,7 @@ def search_faiss(query_vector: np.ndarray):
         cluster_representatives.append({
             "index": rep_index,
             "embedding": rep_embedding.tolist(),
-            "metadata": rep_metadata
+            "metadata":{"id": rep_metadata[0], "url": rep_metadata[1], "desc": rep_metadata[2]}
         })
 
     
@@ -98,7 +98,7 @@ def search_faiss(query_vector: np.ndarray):
         "best_match": {
             "index": best_index,
             "embedding": best_embedding.tolist(),
-            "metadata": best_metadata
+            "metadata": {"id": best_metadata[0], "url": best_metadata[1], "desc": best_metadata[2]}
         },
         "clusters": cluster_representatives
     }
