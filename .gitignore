@@ -4,7 +4,7 @@ azure.err
 .npm
 npm-debug.log
 log/
-node_modules/*
+node_modules/
 test/node_modules
 !src/node_modules
 newrelic_agent.log
