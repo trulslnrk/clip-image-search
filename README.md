@@ -44,7 +44,7 @@ $ pip3 install -r requirements.txt
 4. Run the backend:
 
 ```bash
-$ python3 uvicorn src.app:app --reload
+$ uvicorn src.app:app --reload
 ```
 
 ### Frontend
