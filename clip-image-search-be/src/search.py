@@ -82,13 +82,15 @@ def search_faiss(query_vector: np.ndarray):
 
     # Collect cluster representatives
     cluster_representatives = []
+    
     for i in closest_indices:
+        
         rep_index = int(remaining_indices[i])
         rep_embedding = remaining_embeddings[i]
         rep_metadata = remaining_metadata[i]
         cluster_representatives.append({
             "index": rep_index,
-            "embedding": rep_embedding.tolist(),
+            "embeddings": rep_embedding.tolist(),
             "metadata":{"id": rep_metadata[0], "url": rep_metadata[1], "desc": rep_metadata[2]}
         })
 
@@ -97,8 +99,85 @@ def search_faiss(query_vector: np.ndarray):
     return {
         "best_match": {
             "index": best_index,
-            "embedding": best_embedding.tolist(),
+            "embeddings": best_embedding.tolist(),
             "metadata": {"id": best_metadata[0], "url": best_metadata[1], "desc": best_metadata[2]}
         },
         "clusters": cluster_representatives
+    }
+
+
+def navigate_in_embedding_space(current_embedding, delta, step_size, k=6):
+    # Step in the given direction
+    best_embedding = np.array(current_embedding)
+    delta_vector = np.array(delta)
+    step_size = step_size if step_size else 1.0
+
+    # Apply step size
+    new_embedding = best_embedding + step_size * delta_vector
+    new_embedding /= np.linalg.norm(new_embedding)
+
+    return search_faiss_two(np.array([new_embedding]))
+    
+    
+def search_by_text_two(query: str):
+    inputs = processor(text=[query], return_tensors="pt", padding=True)
+    text_embedding = model.get_text_features(**inputs).detach().numpy()
+    query_vector = text_embedding / np.linalg.norm(text_embedding)
+    return search_faiss_two(query_vector)
+
+def search_faiss_two(query_vector: np.ndarray, k=6):
+    _distances, all_indices = index.search(query_vector, k=100)
+    indices = all_indices[0]
+
+    all_metadata = get_metadata_by_indices("models/metadata.db", all_indices.tolist())
+    all_embeddings = [index.reconstruct(int(idx)) for idx in all_indices[0]]
+
+    # Separate best match and rest
+    best_index = int(indices[0])
+    best_embedding = all_embeddings[0]
+    best_metadata = all_metadata[0]
+    
+    remaining_embeddings = all_embeddings[1:]
+    
+    # Cluster remaining 99 into 6 clusters
+    kmeans = KMeans(n_clusters=k, random_state=42).fit(remaining_embeddings)
+    
+    cluster_centers = kmeans.cluster_centers_
+
+    # Find closest actual image to each cluster center
+    centroid_indices = []
+    for center in cluster_centers:
+        _, idx = index.search(center.reshape(1, -1), 1)
+        centroid_indices.append(int(idx[0][0]))
+      
+    # Search for "dog and cat" -> centroid_indices: [5499, 23973, 19203, 17877, 23973, 23973]
+    # Not sure about this, seems like the centroid indices are the same values for some searches
+    
+    centroid_metadata = get_metadata_by_indices("models/metadata.db", [centroid_indices])
+    print(centroid_metadata)
+    centroid_embeddings = [index.reconstruct(i) for i in centroid_indices]
+
+
+    # print(f"id: {best_metadata[0]}, url: {best_metadata[1]}, desc: {best_metadata[2]}")
+    # for i in range (k):
+    #     print(f"Index: {int(centroid_indices[i])}")
+    #     print(f"Embeddings: for {i}")
+    #     print(f"Metadata-> id: {centroid_metadata[i][0]}, url: {centroid_metadata[i][1]}, desc: {centroid_metadata[i][2]}")
+        
+    
+    # Return results
+    return {
+        "best_match": {
+            "index": best_index,
+            "embeddings": best_embedding.tolist(),
+            "metadata": {"id": best_metadata[0], "url": best_metadata[1], "desc": best_metadata[2]}
+        },
+               "clusters": [
+            {
+                "index": int(centroid_indices[i]),
+                "embeddings": centroid_embeddings[i].tolist(),
+                "metadata":{"id": centroid_metadata[i][0], "url": centroid_metadata[i][1], "desc": centroid_metadata[i][2]}
+            }
+            for i in range(k)
+        ]
     }
