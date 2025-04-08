@@ -6,7 +6,7 @@ type ImageMetaData = {
   description: string;
 } 
 
-interface IImageData {
+export interface IImageData {
   index: number;
   embeddings: number[];
   metadata: ImageMetaData

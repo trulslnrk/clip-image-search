@@ -28,7 +28,7 @@ function HomePage () {
     <div>
       <h1 style={{ textAlign: "center", marginTop: "2rem" }}>CLIP Image Search</h1>
       <SearchBar onResults={setResults} />
-      <ResultsGrid results={results} />
+      <ResultsGrid results={results} onNavigate={(newResults) => setResults(newResults)}/>
     </div>
   );
 };
