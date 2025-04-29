@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { IImageData, ISearchResults } from "../SearchBar/SearchBar";
 
-
-
 interface IProps {
   results?: ISearchResults;
   onNavigate?: (newResults: ISearchResults) => void;
