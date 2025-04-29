@@ -120,3 +120,15 @@ def search_faiss(query_vector: np.ndarray, k=6):
             for i in range(k)
         ]
     }
+
+def navigate_in_embedding_space(current_embedding, delta, step_size, k=6):
+    # Step in the given direction
+    best_embedding = np.array(current_embedding)
+    delta_vector = np.array(delta)
+    step_size = step_size if step_size else 1.0
+
+    # Apply step size
+    new_embedding = best_embedding + step_size * delta_vector
+    new_embedding /= np.linalg.norm(new_embedding)
+
+    return search_faiss(np.array([new_embedding]))
