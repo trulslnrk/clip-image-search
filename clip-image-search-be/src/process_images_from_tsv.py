@@ -9,83 +9,107 @@ from meta_data_db import create_metadata_db, insert_metadata
 import faiss
 import csv
 
+# Paths
+DATA_DIR = "data/"
+EMBEDDINGS_FILE_IP = "models/faiss_index_ip_2.bin"
+EMBEDDINGS_FILE_L2 = "models/faiss_index_l2_2.bin"
+DB_FILE = "models/metadata.db"
+
+# Constants
+EMBEDDING_DIM = 512  # CLIP base output
+
 # Load CLIP model & processor
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-# Directory setup
-DATA_DIR = "data/"
-EMBEDDINGS_FILE = "../models/faiss_index.bin"
-DB_FILE = "../models/metadata.db"
+# 
+# Normalize value within min-max to range [0,1000]
+#  
+def normalizeValueWithinRange(min, max, value):
+  return ((value - min) / (max - min)) * 1000
 
 
-# FAISS Index
-embedding_dim = 512  # CLIP's output embedding size, with clip-vit-base-patch32 it should be 512
-if os.path.exists(EMBEDDINGS_FILE):
-    index = faiss.read_index(EMBEDDINGS_FILE)
-
-# Function to generate embeddings
-def generate_embedding_from_image(image):
+def generate_embedding(image: Image.Image):
     inputs = processor(images=image, return_tensors="pt")
     with torch.no_grad():
         embedding = model.get_image_features(**inputs).detach().numpy()
-        embedding = embedding / np.linalg.norm(embedding)
-    return embedding
+        normalized_embedding = embedding / np.linalg.norm(embedding)
+    return (embedding, normalized_embedding)
 
-# Process all images and store embeddings
-def process_images_from_tsv():
+
+def process_images_from_tsv(tsv_path="data/photos.tsv000"):
+    print("Processing images from TSV...")
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
 
     embeddings = []
+    normalized_embeddings = []
     metadata = []
 
-    with open("data/photos.tsv000", "r", encoding="utf-8") as file:
+    with open(tsv_path, "r", encoding="utf-8") as file:
         reader = csv.DictReader(file, delimiter="\t")
         for index, row in enumerate(reader):
-            image_url = row["photo_image_url"]
-            image_id = row["photo_id"]
-            description = row.get("photo_description", "")
-            image_path = os.path.join(DATA_DIR, f"{image_id}.jpg")
-            if not os.path.exists(image_path):
-                # Download the image if it doesn't exist
+            if(index < 3):
+                image_url = row["photo_image_url"]
+                image_id = row["photo_id"]
+                description = row.get("photo_description", "")
+                image_path = os.path.join(DATA_DIR, f"{image_id}.jpg")
+
                 try:
-                # Download the image
-                    response = requests.get(image_url)
+                    # Download and process image
+                    response = requests.get(image_url, timeout=10)
                     response.raise_for_status()
                     image = Image.open(BytesIO(response.content)).convert("RGB")
-                    # image.save(image_path)
 
                     # Generate embedding
-                    embedding = generate_embedding_from_image(image)
+                    embedding, normalized_embedding = generate_embedding(image)
                     embeddings.append(embedding)
+                    normalized_embeddings.append(normalized_embedding)
+
+                    # Normalize the width and height to fit to a max value of 1000
+                    width, height = image.size
+                    max_value = max(width, height)
+                    normalized_width = normalizeValueWithinRange(0, max_value, width)
+                    normalized_height = normalizeValueWithinRange(0, max_value, height)
+                    # Resize image to the normalized dimensions
+                    image = image.resize((int(normalized_width), int(normalized_height)), Image.NEAREST)
+
+                    # Save image
+                    image.save(image_path)
 
                     # Save metadata
                     metadata.append((image_id, image_url, description))
-                    
+
                     if index % 100 == 0:
-                        print(f"Finished with batch, at element: {index}")
+                        print(f"[{index}] Processed image and embedding.")
 
                 except Exception as e:
-                    print(f"Failed to process image from URL {image_url}: {e}")
+                    print(f"[{index}] Failed to process {image_url}: {e}")
 
+    if not embeddings:
+        print("No embeddings created. Exiting.")
+        return
 
+    print(f"✅ Created embeddings for {len(embeddings)} images.")
 
-    print(f"Added embedding for {len(embedding)} pictures")
-    # Convert to NumPy array & add to FAISS
-    embeddings = np.vstack(embeddings)
-    index = faiss.IndexFlatL2(512)
-    index.add(embeddings)
-    
-    
-    # Save FAISS index
-    faiss.write_index(index, EMBEDDINGS_FILE)
-    print("Added index to file")
-    
-    # Save metadata to SQLite
+    # Stack and index embeddings (no normalization)
+    all_embeddings = np.vstack(embeddings)
+    index_l2 = faiss.IndexFlatL2(EMBEDDING_DIM)
+    index_l2.add(all_embeddings)
+    faiss.write_index(index_l2, EMBEDDINGS_FILE_L2)
+    print(f"✅ FAISS index written to: {EMBEDDINGS_FILE_L2}")
+
+    # Stack and index embeddings (with normalization)
+    all_normalized_embeddings = np.vstack(normalized_embeddings)
+    index_ip = faiss.IndexFlatIP(EMBEDDING_DIM)
+    index_ip.add(all_normalized_embeddings)
+    faiss.write_index(index_ip, EMBEDDINGS_FILE_IP)
+    print(f"✅ FAISS index written to: {EMBEDDINGS_FILE_IP}")
+
+    # Store metadata
     create_metadata_db(DB_FILE)
     insert_metadata(DB_FILE, metadata)
-    print(f"Added metadata for {len(metadata)}")
+    print(f"✅ Metadata saved to DB: {DB_FILE}")
 
 if __name__ == "__main__":
     process_images_from_tsv()
