@@ -29,7 +29,7 @@ def get_metadata_by_indices(db_file: str, indices: list):
     if not adjusted_indices:
         raise ValueError("No indices provided for metadata retrieval.")
     
-    query = f"SELECT id, url, description FROM metadata WHERE rowid IN ({placeholders})"
+    query = f"SELECT id, url, description, aspect_ratio FROM metadata WHERE rowid IN ({placeholders})"
     
     try:
         cursor.execute(query, adjusted_indices)
@@ -109,13 +109,13 @@ def search_faiss(query_vector: np.ndarray, k=6):
         "best_match": {
             "index": best_index,
             "embeddings": best_embedding.tolist(),
-            "metadata": {"id": best_metadata[0], "url": best_metadata[1], "desc": best_metadata[2]}
+            "metadata": {"id": best_metadata[0], "url": best_metadata[1], "desc": best_metadata[2], "aspectRatio": best_metadata[3]}
         },
                "clusters": [
             {
                 "index": int(centroid_indices[i]),
                 "embeddings": centroid_embeddings[i].tolist(),
-                "metadata":{"id": centroid_metadata[i][0], "url": centroid_metadata[i][1], "desc": centroid_metadata[i][2]}
+                "metadata":{"id": centroid_metadata[i][0], "url": centroid_metadata[i][1], "desc": centroid_metadata[i][2], "aspectRatio": centroid_metadata[i][3]}
             }
             for i in range(k)
         ]
