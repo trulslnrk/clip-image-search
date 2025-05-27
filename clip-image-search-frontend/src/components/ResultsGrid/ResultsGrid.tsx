@@ -73,7 +73,7 @@ export function ResultsGrid(props: IProps) {
             {results.clusters[0] && (
               <div style={{ textAlign: "center" }}>
                 <img
-                  src={results.clusters[0].metadata.url}
+                  src={`${results.clusters[0].metadata.url}?idix=${results.clusters[0].metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.clusters[0].metadata.aspectRatio}`}
                   alt=""
                   width="300"
                   height={300}
@@ -107,7 +107,7 @@ export function ResultsGrid(props: IProps) {
             {results.clusters[1] && (
               <div style={{ textAlign: "center" }}>
                 <img
-                  src={results.clusters[1].metadata.url}
+                  src={`${results.clusters[1].metadata.url}?idix=${results.clusters[1].metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.clusters[1].metadata.aspectRatio}`}
                   alt=""
                   width="300"
                   height={300}
@@ -140,7 +140,7 @@ export function ResultsGrid(props: IProps) {
             {results.clusters[2] && (
               <div style={{ textAlign: "center" }}>
                 <img
-                  src={results.clusters[2].metadata.url}
+                  src={`${results.clusters[2].metadata.url}?idix=${results.clusters[2].metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.clusters[2].metadata.aspectRatio}`}
                   alt=""
                   width="300"
                   height={300}
@@ -171,7 +171,7 @@ export function ResultsGrid(props: IProps) {
           </div>
           <div style={{ gridArea: "c" }}>
             <img
-              src={center.url}
+              src={`${center.url}?idix=${center.id}&fm=webp&q=20&w=1000&h=${1000 / center.aspectRatio}`}
               alt="center"
               width="300"
               height={300}
@@ -182,7 +182,7 @@ export function ResultsGrid(props: IProps) {
             {results.clusters[3] && (
               <div style={{ textAlign: "center" }}>
                 <img
-                  src={results.clusters[3].metadata.url}
+                  src={`${results.clusters[3].metadata.url}?idix=${results.clusters[3].metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.clusters[3].metadata.aspectRatio}`}
                   alt=""
                   width="300"
                   height={300}
@@ -215,7 +215,7 @@ export function ResultsGrid(props: IProps) {
             {results.clusters[4] && (
               <div style={{ textAlign: "center" }}>
                 <img
-                  src={results.clusters[4].metadata.url}
+                  src={`${results.clusters[4].metadata.url}?idix=${results.clusters[4].metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.clusters[4].metadata.aspectRatio}`}
                   alt=""
                   width="300"
                   height={300}
@@ -249,7 +249,7 @@ export function ResultsGrid(props: IProps) {
             {results.clusters[5] && (
               <div style={{ textAlign: "center" }}>
                 <img
-                  src={results.clusters[5].metadata.url}
+                  src={`${results.clusters[5].metadata.url}?idix=${results.clusters[5].metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.clusters[5].metadata.aspectRatio}`}
                   alt=""
                   width="300"
                   height={300}

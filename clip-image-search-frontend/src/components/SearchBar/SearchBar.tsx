@@ -1,27 +1,28 @@
-import  { useState } from 'react';
+import { useState } from "react";
 
 type ImageMetaData = {
   id: string;
   url: string;
   description: string;
-} 
+  aspectRatio: number;
+};
 
 export interface IImageData {
   index: number;
   embeddings: number[];
-  metadata: ImageMetaData
+  metadata: ImageMetaData;
 }
 
 export interface ISearchResults {
   best_match: IImageData;
-  clusters: IImageData[]
+  clusters: IImageData[];
 }
 
 interface IProps {
-  onResults:  (data: any) => void;
+  onResults: (data: any) => void;
 }
 
-export function SearchBar (props: IProps) {
+export function SearchBar(props: IProps) {
   const { onResults } = props;
 
   const [query, setQuery] = useState("");
@@ -32,9 +33,11 @@ export function SearchBar (props: IProps) {
     if (!query.trim()) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/search/text?query=${encodeURIComponent(query)}`);
+      const res = await fetch(
+        `/api/search/text?query=${encodeURIComponent(query)}`
+      );
       const data: ISearchResults = await res.json();
-      console.log(data)
+      console.log(data);
       onResults(data);
     } catch (error) {
       console.error("Text search failed", error);
@@ -75,7 +78,8 @@ export function SearchBar (props: IProps) {
       <button onClick={handleTextSearch} disabled={isLoading}>
         Search Text
       </button>
-      <br /><br />
+      <br />
+      <br />
       <input
         type="file"
         accept="image/*"
@@ -86,5 +90,4 @@ export function SearchBar (props: IProps) {
       </button>
     </div>
   );
-};
-
+}
