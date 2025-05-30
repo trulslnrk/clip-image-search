@@ -37,7 +37,6 @@ export function SearchBar(props: IProps) {
         `/api/search/text?query=${encodeURIComponent(query)}`
       );
       const data: ISearchResults = await res.json();
-      console.log(data);
       onResults(data);
     } catch (error) {
       console.error("Text search failed", error);

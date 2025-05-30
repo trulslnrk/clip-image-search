@@ -31,7 +31,6 @@ function RouteComponent() {
 
   const handleStep = async (direction: number) => {
     if (!currentEmbedding || selectedDim == null) {
-      console.log("LOL");
       return;
     }
 
@@ -102,7 +101,7 @@ function RouteComponent() {
         <div style={{ textAlign: "center" }}>
           <h3>Best Match</h3>
           <img
-            src={results.best_match.metadata.url}
+            src={`${results.best_match.metadata.url}?idix=${results.best_match.metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.best_match.metadata.aspectRatio}`}
             alt={results.best_match.metadata.description || "result"}
             width={300}
             height={300}

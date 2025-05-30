@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { IImageData, ISearchResults } from "../SearchBar/SearchBar";
 
 interface IProps {
@@ -8,12 +8,11 @@ interface IProps {
 
 export function ResultsGrid(props: IProps) {
   const { results, onNavigate } = props;
+  const [stepSize, setStepSize] = useState(1.0);
 
   if (!results || !results.best_match) {
     return <p style={{ textAlign: "center" }}>No results found.</p>;
   }
-
-  const [stepSize, setStepSize] = useState(1.0);
 
   const center = results.best_match.metadata;
   const bestEmbedding = results.best_match.embeddings;
@@ -39,12 +38,45 @@ export function ResultsGrid(props: IProps) {
       }
 
       const newResults: ISearchResults = await response.json();
-
-      onNavigate?.(newResults); // Pass back to parent for update
+      onNavigate?.(newResults);
     } catch (err) {
       console.error("Error navigating:", err);
     }
   };
+
+  // Render a single cluster
+  const renderCluster = (cluster: IImageData, gridArea: string) => (
+    <div style={{ gridArea }}>
+      <div style={{ textAlign: "center" }}>
+        <img
+          src={`${cluster.metadata.url}?idix=${cluster.metadata.id}&fm=webp&q=20&w=1000&h=${1000 / cluster.metadata.aspectRatio}`}
+          alt={cluster.metadata.description || "Image"}
+          width="400"
+          height="400"
+          onClick={() => handleClick(cluster)}
+          style={{ cursor: "pointer", borderRadius: "8px" }}
+        />
+        <div
+          style={{
+            fontSize: "0.8rem",
+            marginTop: "4px",
+            display: "flex",
+            maxWidth: "300px",
+            alignItems: "center",
+            gap: "4px",
+          }}
+        >
+          {getTopChangingDimensions(bestEmbedding, cluster.embeddings).map(
+            (dim) => (
+              <div key={dim.index}>
+                dim {dim.index} ({dim.rawDelta.toFixed(2)})
+              </div>
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div>
@@ -69,215 +101,21 @@ export function ResultsGrid(props: IProps) {
             gap: "20px",
           }}
         >
-          <div style={{ gridArea: "tl" }}>
-            {results.clusters[0] && (
-              <div style={{ textAlign: "center" }}>
-                <img
-                  src={`${results.clusters[0].metadata.url}?idix=${results.clusters[0].metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.clusters[0].metadata.aspectRatio}`}
-                  alt=""
-                  width="300"
-                  height={300}
-                  onClick={() => handleClick(results.clusters[0])}
-                  style={{ cursor: "pointer" }}
-                />
-                <div
-                  style={{
-                    fontSize: "0.8rem",
-                    marginTop: "4px",
-                    display: "flex",
-                    maxWidth: "300px",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  {getTopChangingDimensions(
-                    bestEmbedding,
-                    results.clusters[0].embeddings
-                  ).map((dim) => (
-                    <div key={dim.index}>
-                      dim {dim.index} ({dim.rawDelta.toFixed(2)})
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          <div style={{ gridArea: "t" }}></div>
-          <div style={{ gridArea: "tr" }}>
-            {results.clusters[1] && (
-              <div style={{ textAlign: "center" }}>
-                <img
-                  src={`${results.clusters[1].metadata.url}?idix=${results.clusters[1].metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.clusters[1].metadata.aspectRatio}`}
-                  alt=""
-                  width="300"
-                  height={300}
-                  onClick={() => handleClick(results.clusters[1])}
-                  style={{ cursor: "pointer" }}
-                />
-                <div
-                  style={{
-                    fontSize: "0.8rem",
-                    marginTop: "4px",
-                    display: "flex",
-                    maxWidth: "300px",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  {getTopChangingDimensions(
-                    bestEmbedding,
-                    results.clusters[1].embeddings
-                  ).map((dim) => (
-                    <div key={dim.index}>
-                      dim {dim.index} ({dim.rawDelta.toFixed(2)})
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          <div style={{ gridArea: "l" }}>
-            {results.clusters[2] && (
-              <div style={{ textAlign: "center" }}>
-                <img
-                  src={`${results.clusters[2].metadata.url}?idix=${results.clusters[2].metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.clusters[2].metadata.aspectRatio}`}
-                  alt=""
-                  width="300"
-                  height={300}
-                  onClick={() => handleClick(results.clusters[2])}
-                  style={{ cursor: "pointer" }}
-                />
-                <div
-                  style={{
-                    fontSize: "0.8rem",
-                    marginTop: "4px",
-                    display: "flex",
-                    maxWidth: "300px",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  {getTopChangingDimensions(
-                    bestEmbedding,
-                    results.clusters[2].embeddings
-                  ).map((dim) => (
-                    <div key={dim.index}>
-                      dim {dim.index} ({dim.rawDelta.toFixed(2)})
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          {results.clusters[0] && renderCluster(results.clusters[0], "tl")}
+          {results.clusters[1] && renderCluster(results.clusters[1], "tr")}
+          {results.clusters[2] && renderCluster(results.clusters[2], "l")}
           <div style={{ gridArea: "c" }}>
             <img
               src={`${center.url}?idix=${center.id}&fm=webp&q=20&w=1000&h=${1000 / center.aspectRatio}`}
               alt="center"
-              width="300"
-              height={300}
+              width="400"
+              height="400"
               style={{ border: "4px solid red" }}
             />
           </div>
-          <div style={{ gridArea: "r" }}>
-            {results.clusters[3] && (
-              <div style={{ textAlign: "center" }}>
-                <img
-                  src={`${results.clusters[3].metadata.url}?idix=${results.clusters[3].metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.clusters[3].metadata.aspectRatio}`}
-                  alt=""
-                  width="300"
-                  height={300}
-                  onClick={() => handleClick(results.clusters[3])}
-                  style={{ cursor: "pointer" }}
-                />
-                <div
-                  style={{
-                    fontSize: "0.8rem",
-                    marginTop: "4px",
-                    display: "flex",
-                    maxWidth: "300px",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  {getTopChangingDimensions(
-                    bestEmbedding,
-                    results.clusters[3].embeddings
-                  ).map((dim) => (
-                    <div key={dim.index}>
-                      dim {dim.index} ({dim.rawDelta.toFixed(2)})
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          <div style={{ gridArea: "bl" }}>
-            {results.clusters[4] && (
-              <div style={{ textAlign: "center" }}>
-                <img
-                  src={`${results.clusters[4].metadata.url}?idix=${results.clusters[4].metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.clusters[4].metadata.aspectRatio}`}
-                  alt=""
-                  width="300"
-                  height={300}
-                  onClick={() => handleClick(results.clusters[4])}
-                  style={{ cursor: "pointer" }}
-                />
-                <div
-                  style={{
-                    fontSize: "0.8rem",
-                    marginTop: "4px",
-                    display: "flex",
-                    maxWidth: "300px",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  {getTopChangingDimensions(
-                    bestEmbedding,
-                    results.clusters[4].embeddings
-                  ).map((dim) => (
-                    <div key={dim.index}>
-                      dim {dim.index} ({dim.rawDelta.toFixed(2)})
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          <div style={{ gridArea: "b" }}></div>
-          <div style={{ gridArea: "br" }}>
-            {results.clusters[5] && (
-              <div style={{ textAlign: "center" }}>
-                <img
-                  src={`${results.clusters[5].metadata.url}?idix=${results.clusters[5].metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.clusters[5].metadata.aspectRatio}`}
-                  alt=""
-                  width="300"
-                  height={300}
-                  onClick={() => handleClick(results.clusters[5])}
-                  style={{ cursor: "pointer" }}
-                />
-                <div
-                  style={{
-                    fontSize: "0.8rem",
-                    marginTop: "4px",
-                    display: "flex",
-                    maxWidth: "300px",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  {getTopChangingDimensions(
-                    bestEmbedding,
-                    results.clusters[5].embeddings
-                  ).map((dim) => (
-                    <div key={dim.index}>
-                      dim {dim.index} ({dim.rawDelta.toFixed(2)})
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          {results.clusters[3] && renderCluster(results.clusters[3], "r")}
+          {results.clusters[4] && renderCluster(results.clusters[4], "bl")}
+          {results.clusters[5] && renderCluster(results.clusters[5], "br")}
         </div>
       </div>
     </div>
