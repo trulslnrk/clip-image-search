@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ISearchResults } from "../../components/SearchBar/SearchBar";
+import { ISearchResults } from "../../models/Search";
 
 export const Route = createFileRoute("/explore/")({
   component: RouteComponent,

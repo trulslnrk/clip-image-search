@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IImageData, ISearchResults } from "../SearchBar/SearchBar";
+import { IImageData, ISearchResults } from "../../models/Search";
 
 interface IProps {
   results?: ISearchResults;
