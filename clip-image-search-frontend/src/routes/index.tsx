@@ -23,7 +23,7 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const [results, setResults] = useState<ISearchResults | undefined>(); // State for search results
+  const [results, setResults] = useState<ISearchResults | undefined>();
 
   return (
     <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "2rem" }}>

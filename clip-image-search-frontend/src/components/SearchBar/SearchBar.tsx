@@ -4,10 +4,12 @@ import "./SearchBar.scss";
 
 interface IProps {
   onResults: (data: any) => void;
+  onSubmit?: (query: string) => void;
+  images?: boolean;
 }
 
 export function SearchBar(props: IProps) {
-  const { onResults } = props;
+  const { onResults, onSubmit, images = true } = props;
 
   const [query, setQuery] = useState("");
   const [image, setImage] = useState<File | null>(null);
@@ -22,6 +24,7 @@ export function SearchBar(props: IProps) {
       );
       const data: ISearchResults = await res.json();
       onResults(data);
+      onSubmit?.(query);
     } catch (error) {
       console.error("Text search failed", error);
     } finally {
@@ -96,36 +99,38 @@ export function SearchBar(props: IProps) {
           Search Text
         </button>
       </form>
-      <form style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-        <label
-          htmlFor="image-upload"
-          className="image-upload-label"
-          data-image={image !== null}
-        >
-          {image ? `Selected: ${image.name}` : "📁 Choose an image"}
-          <input
-            id="image-upload"
-            type="file"
-            accept="image/*"
-            onChange={(e) => setImage(e.target.files?.[0] || null)}
-            style={{ display: "none" }}
-          />
-        </label>
-        <button
-          onClick={handleImageSearch}
-          disabled={isLoading || !image}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: "#4caf50",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: image ? "pointer" : "not-allowed",
-          }}
-        >
-          Search Image
-        </button>
-      </form>
+      {images && (
+        <form style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+          <label
+            htmlFor="image-upload"
+            className="image-upload-label"
+            data-image={image !== null}
+          >
+            {image ? `Selected: ${image.name}` : "📁 Choose an image"}
+            <input
+              id="image-upload"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImage(e.target.files?.[0] || null)}
+              style={{ display: "none" }}
+            />
+          </label>
+          <button
+            onClick={handleImageSearch}
+            disabled={isLoading || !image}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#4caf50",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: image ? "pointer" : "not-allowed",
+            }}
+          >
+            Search Image
+          </button>
+        </form>
+      )}
     </div>
   );
 }
