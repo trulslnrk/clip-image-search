@@ -48,28 +48,37 @@ export function SearchBar(props: IProps) {
     }
   };
 
+  const handleTextSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    handleTextSearch();
+  };
+
   return (
     <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-      <input
-        type="text"
-        placeholder="Search by text..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        style={{ marginRight: "10px", padding: "8px", width: "300px" }}
-      />
-      <button onClick={handleTextSearch} disabled={isLoading}>
-        Search Text
-      </button>
+      <form onSubmit={handleTextSubmit} style={{ marginBottom: "1rem" }}>
+        <input
+          type="text"
+          placeholder="Search by text..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          style={{ marginRight: "10px", padding: "8px", width: "300px" }}
+        />
+        <button type="submit" disabled={isLoading}>
+          Search Text
+        </button>
+      </form>
       <br />
       <br />
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setImage(e.target.files?.[0] || null)}
-      />
-      <button onClick={handleImageSearch} disabled={isLoading || !image}>
-        Search Image
-      </button>
+      <form>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImage(e.target.files?.[0] || null)}
+        />
+        <button onClick={handleImageSearch} disabled={isLoading || !image}>
+          Search Image
+        </button>
+      </form>
     </div>
   );
 }
