@@ -1,10 +1,10 @@
-import  { useState } from 'react';
-import {ISearchResults, SearchBar} from '../components/SearchBar/SearchBar';
-import {ImageGallery} from '../components/ImageGallery/ImageGallery';
+import { useState } from "react";
+import { SearchBar } from "../components/SearchBar/SearchBar";
 // @ts-ignore
+import { createFileRoute } from "@tanstack/react-router";
+import { ResultsGrid } from "../components/ResultsGrid/ResultsGrid";
+import { ISearchResults } from "../models/Search";
 import "./index.scss";
-import { createFileRoute } from '@tanstack/react-router';
-import { ResultsGrid } from '../components/ResultsGrid/ResultsGrid';
 
 export interface ImageMetadata {
   title: string;
@@ -18,17 +18,22 @@ export interface SearchResult {
 }
 
 export const Route = createFileRoute("/")({
-  component: HomePage
-})
+  component: HomePage,
+});
 
-function HomePage () {
-  const [results, setResults] = useState<ISearchResults | undefined>();  // State for search results
+function HomePage() {
+  const [results, setResults] = useState<ISearchResults | undefined>(); // State for search results
 
   return (
-    <div>
-      <h1 style={{ textAlign: "center", marginTop: "2rem" }}>CLIP Image Search</h1>
+    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "2rem" }}>
+      <h1 style={{ textAlign: "center", marginBottom: "2rem" }}>
+        Search by text or choose an image to walk through CLIP space
+      </h1>
       <SearchBar onResults={setResults} />
-      <ResultsGrid results={results} onNavigate={(newResults) => setResults(newResults)}/>
+      <ResultsGrid
+        results={results}
+        onNavigate={(newResults) => setResults(newResults)}
+      />
     </div>
   );
-};
+}

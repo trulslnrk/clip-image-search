@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { IImageData, ISearchResults } from "../../models/Search";
+import { ImageWithSkeleton } from "../ImageWithSkeleton/ImageWithSkeleton";
 
 interface IProps {
   results?: ISearchResults;
@@ -48,29 +49,41 @@ export function ResultsGrid(props: IProps) {
   const renderCluster = (cluster: IImageData, gridArea: string) => (
     <div style={{ gridArea }}>
       <div style={{ textAlign: "center" }}>
-        <img
+        <ImageWithSkeleton
+          center={false}
           src={`${cluster.metadata.url}?idix=${cluster.metadata.id}&fm=webp&q=20&w=1000&h=${1000 / cluster.metadata.aspectRatio}`}
           alt={cluster.metadata.description || "Image"}
-          width="400"
-          height="400"
+          width={400}
+          height={400}
           onClick={() => handleClick(cluster)}
-          style={{ cursor: "pointer", borderRadius: "8px" }}
+          style={{ cursor: "pointer" }}
         />
+
+        {/* Delta Info */}
         <div
           style={{
-            fontSize: "0.8rem",
-            marginTop: "4px",
+            fontSize: "0.75rem",
+            marginTop: "6px",
             display: "flex",
-            maxWidth: "300px",
-            alignItems: "center",
-            gap: "4px",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: "6px",
+            maxWidth: "260px",
+            marginInline: "auto",
           }}
         >
           {getTopChangingDimensions(bestEmbedding, cluster.embeddings).map(
             (dim) => (
-              <div key={dim.index}>
+              <span
+                key={dim.index}
+                style={{
+                  backgroundColor: "#f0f0f0",
+                  padding: "2px 6px",
+                  borderRadius: "4px",
+                }}
+              >
                 dim {dim.index} ({dim.rawDelta.toFixed(2)})
-              </div>
+              </span>
             )
           )}
         </div>
@@ -79,9 +92,12 @@ export function ResultsGrid(props: IProps) {
   );
 
   return (
-    <div>
-      <div style={{ marginBottom: "1rem", textAlign: "center" }}>
-        <label>Step Size: </label>
+    <div style={{ padding: "2rem" }}>
+      {/* Step Size Control */}
+      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <label style={{ marginRight: "0.5rem", fontWeight: "bold" }}>
+          Step Size:
+        </label>
         <input
           type="range"
           min="0.1"
@@ -89,29 +105,43 @@ export function ResultsGrid(props: IProps) {
           step="0.1"
           value={stepSize}
           onChange={(e) => setStepSize(parseFloat(e.target.value))}
-          style={{ width: "300px" }}
+          style={{ width: "300px", verticalAlign: "middle" }}
         />
-        <span style={{ marginLeft: "10px" }}>{stepSize.toFixed(1)}</span>
+        <span style={{ marginLeft: "1rem", fontSize: "1rem" }}>
+          {stepSize.toFixed(1)}
+        </span>
       </div>
-      <div style={{ display: "grid", placeItems: "center", marginTop: "2rem" }}>
+
+      {/* Grid Layout */}
+      <div style={{ display: "grid", placeItems: "center" }}>
         <div
           style={{
             display: "grid",
             gridTemplateAreas: `'tl t tr' 'l c r' 'bl b br'`,
-            gap: "20px",
+            gap: "24px",
           }}
         >
           {results.clusters[0] && renderCluster(results.clusters[0], "tl")}
           {results.clusters[1] && renderCluster(results.clusters[1], "tr")}
           {results.clusters[2] && renderCluster(results.clusters[2], "l")}
-          <div style={{ gridArea: "c" }}>
-            <img
+
+          {/* Center (Best Match) */}
+          <div style={{ gridArea: "c", textAlign: "center" }}>
+            <ImageWithSkeleton
               src={`${center.url}?idix=${center.id}&fm=webp&q=20&w=1000&h=${1000 / center.aspectRatio}`}
-              alt="center"
-              width="400"
-              height="400"
-              style={{ border: "4px solid red" }}
+              alt="Best match"
+              width={400}
+              height={400}
+              style={{
+                border: "4px solid #f44336",
+                borderRadius: "8px",
+              }}
             />
+            <div
+              style={{ marginTop: "8px", fontSize: "0.9rem", fontWeight: 500 }}
+            >
+              Best Match
+            </div>
           </div>
           {results.clusters[3] && renderCluster(results.clusters[3], "r")}
           {results.clusters[4] && renderCluster(results.clusters[4], "bl")}

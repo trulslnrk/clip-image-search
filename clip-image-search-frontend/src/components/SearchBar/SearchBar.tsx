@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ISearchResults } from "../../models/Search";
+import "./SearchBar.scss";
 
 interface IProps {
   onResults: (data: any) => void;
@@ -54,28 +55,74 @@ export function SearchBar(props: IProps) {
   };
 
   return (
-    <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-      <form onSubmit={handleTextSubmit} style={{ marginBottom: "1rem" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "1.5rem",
+        marginBottom: "2rem",
+      }}
+    >
+      <form
+        onSubmit={handleTextSubmit}
+        style={{ display: "flex", gap: "1rem", alignItems: "center" }}
+      >
         <input
           type="text"
-          placeholder="Search by text..."
+          placeholder="🔍 Search by text (e.g. 'a snowy mountain')"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          style={{ marginRight: "10px", padding: "8px", width: "300px" }}
+          style={{
+            padding: "10px",
+            width: "300px",
+            borderRadius: "4px",
+            border: "1px solid #ccc",
+            fontSize: "1rem",
+          }}
         />
-        <button type="submit" disabled={isLoading}>
+        <button
+          type="submit"
+          disabled={isLoading}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "#4a90e2",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
           Search Text
         </button>
       </form>
-      <br />
-      <br />
-      <form>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setImage(e.target.files?.[0] || null)}
-        />
-        <button onClick={handleImageSearch} disabled={isLoading || !image}>
+      <form style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+        <label
+          htmlFor="image-upload"
+          className="image-upload-label"
+          data-image={image !== null}
+        >
+          {image ? `Selected: ${image.name}` : "📁 Choose an image"}
+          <input
+            id="image-upload"
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImage(e.target.files?.[0] || null)}
+            style={{ display: "none" }}
+          />
+        </label>
+        <button
+          onClick={handleImageSearch}
+          disabled={isLoading || !image}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "#4caf50",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: image ? "pointer" : "not-allowed",
+          }}
+        >
           Search Image
         </button>
       </form>
