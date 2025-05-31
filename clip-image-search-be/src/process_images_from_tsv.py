@@ -49,42 +49,30 @@ def process_images_from_tsv(tsv_path="data/photos.tsv000"):
     with open(tsv_path, "r", encoding="utf-8") as file:
         reader = csv.DictReader(file, delimiter="\t")
         for index, row in enumerate(reader):
-            if(index < 3):
-                image_url = row["photo_image_url"]
-                image_id = row["photo_id"]
-                description = row.get("photo_description", "")
-                image_path = os.path.join(DATA_DIR, f"{image_id}.jpg")
+            image_url = row["photo_image_url"]
+            image_id = row["photo_id"]
+            image_aspect_ratio = row["photo_aspect_ratio"]
+            description = row.get("photo_description", "")
 
-                try:
-                    # Download and process image
-                    response = requests.get(image_url, timeout=10)
-                    response.raise_for_status()
-                    image = Image.open(BytesIO(response.content)).convert("RGB")
+            try:
+                # Download and process image
+                response = requests.get(image_url, timeout=10)
+                response.raise_for_status()
+                image = Image.open(BytesIO(response.content)).convert("RGB")
 
-                    # Generate embedding
-                    embedding, normalized_embedding = generate_embedding(image)
-                    embeddings.append(embedding)
-                    normalized_embeddings.append(normalized_embedding)
+                # Generate embedding
+                embedding, normalized_embedding = generate_embedding(image)
+                embeddings.append(embedding)
+                normalized_embeddings.append(normalized_embedding)
 
-                    # Normalize the width and height to fit to a max value of 1000
-                    width, height = image.size
-                    max_value = max(width, height)
-                    normalized_width = normalizeValueWithinRange(0, max_value, width)
-                    normalized_height = normalizeValueWithinRange(0, max_value, height)
-                    # Resize image to the normalized dimensions
-                    image = image.resize((int(normalized_width), int(normalized_height)), Image.NEAREST)
+                # Save metadata
+                metadata.append((image_id, image_url, image_aspect_ratio, description))
 
-                    # Save image
-                    image.save(image_path)
+                if index % 100 == 0:
+                    print(f"[{index}] Processed image and embedding.")
 
-                    # Save metadata
-                    metadata.append((image_id, image_url, description))
-
-                    if index % 100 == 0:
-                        print(f"[{index}] Processed image and embedding.")
-
-                except Exception as e:
-                    print(f"[{index}] Failed to process {image_url}: {e}")
+            except Exception as e:
+                print(f"[{index}] Failed to process {image_url}: {e}")
 
     if not embeddings:
         print("No embeddings created. Exiting.")

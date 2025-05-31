@@ -8,6 +8,7 @@ def create_metadata_db(db_file: str):
         CREATE TABLE IF NOT EXISTS metadata (
             id TEXT PRIMARY KEY,
             url TEXT NOT NULL,
+            aspect_ratio REAL,
             description TEXT
         )
     """)
@@ -19,8 +20,8 @@ def insert_metadata(db_file: str, metadata: list):
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
     cursor.executemany("""
-        INSERT INTO metadata (id, url, description)
-        VALUES (?, ?, ?)
+        INSERT INTO metadata (id, url, aspect_ratio, description)
+        VALUES (?, ?, ?, ?)
     """, metadata)
     conn.commit()
     conn.close()
