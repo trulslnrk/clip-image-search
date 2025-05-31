@@ -20,7 +20,7 @@ This is because not all dependencies support the newest versions of python.
 1. Be sure you are in the correct folder. So from the root directory of this project:
 
 ```bash
-$ cd ./clip-image-search-be
+$ cd ./backend
 ```
 
 2. It is recommended that you use a virtual environment to install the dependencies. Create a virtual environment:
@@ -52,14 +52,14 @@ $ uvicorn src.app:app --reload
 1. Be sure you are in the correct folder. So from the root directory of this project:
 
 ```bash
-$ cd ./clip-image-search-frontend
+$ cd ./frontend
 ```
 
 The frontend application and build system runs on node.js. To get up and running:
 
 - Node version is specified in the `.nvmrc` file
 - Install [NVM](https://github.com/nvm-sh/nvm)
-- Run the command `nvm install` from the `clip-image-search-frontend` directory to install correct node version
+- Run the command `nvm install` from the `frontend` directory to install correct node version
 
 2. Install dependencies:
 

@@ -53,8 +53,8 @@ export function ResultsGrid(props: IProps) {
           center={false}
           src={`${cluster.metadata.url}?idix=${cluster.metadata.id}&fm=webp&q=20&w=1000&h=${1000 / cluster.metadata.aspectRatio}`}
           alt={cluster.metadata.description || "Image"}
-          width={400}
-          height={400}
+          width={300}
+          height={300}
           onClick={() => handleClick(cluster)}
           style={{ cursor: "pointer" }}
         />
@@ -130,8 +130,8 @@ export function ResultsGrid(props: IProps) {
             <ImageWithSkeleton
               src={`${center.url}?idix=${center.id}&fm=webp&q=20&w=1000&h=${1000 / center.aspectRatio}`}
               alt="Best match"
-              width={400}
-              height={400}
+              width={300}
+              height={300}
               style={{
                 border: "4px solid #f44336",
                 borderRadius: "8px",

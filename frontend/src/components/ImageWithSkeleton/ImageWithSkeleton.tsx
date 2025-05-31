@@ -57,8 +57,8 @@ export const ImageWithSkeleton: React.FC<IProps> = (props) => {
           props.onLoad?.(e);
         }}
         style={{
-          width: "390px",
-          height: "390px",
+          width: "290px",
+          height: "290px",
           display: loaded ? "block" : "none",
           borderRadius,
           ...style,
