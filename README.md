@@ -39,7 +39,8 @@ $ git clone https://github.com/trulslnrk/clip-image-search.git
 
 ### Backend
 
-> [!NOTE] > **Python 3.10 required:** Some dependencies are not compatible with versions above 3.10.
+> [!NOTE]
+> **Python 3.10 required:** Some dependencies are not compatible with versions above 3.10.
 
 1. Be sure you are in the correct folder. So from the root directory of this project:
 
