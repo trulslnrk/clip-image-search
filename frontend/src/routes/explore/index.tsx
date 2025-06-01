@@ -181,7 +181,7 @@ function RouteComponent() {
           }}
         >
           <h3 style={{ marginBottom: "1rem", color: "#333" }}>
-            Best Match for {query}
+            Text searched by {query}
           </h3>
           <ImageWithSkeleton
             src={`${results.best_match.metadata.url}?idix=${results.best_match.metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.best_match.metadata.aspectRatio}`}
