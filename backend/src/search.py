@@ -6,71 +6,69 @@ from PIL import Image
 import io
 import faiss
 from sklearn.cluster import KMeans
+from src.meta_data_db import get_metadata_by_indices, get_matadata_by_index
 
 # Load CLIP model & processor
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 # Load FAISS index
-EMBEDDINGS_FILE = "models/faiss_index_ip.bin"
+INDEX_IP_PATH = "models/faiss_index_ip.bin"
+INDEX_L2_PATH = "models/faiss_index_l2.bin"
 DB_FILE = "models/metadata.db"
-index = faiss.read_index(EMBEDDINGS_FILE)
-
-def get_metadata_by_indices(db_file: str, indices: list):
-    conn = sqlite3.connect(db_file)
-    cursor = conn.cursor()
-    # Ensure indices is a flat list
-    flat_indices = [item for sublist in indices for item in sublist] if isinstance(indices[0], (list, tuple)) else indices
-
-    # Adjust FAISS indices to match SQLite rowid (FAISS starts at 0, SQLite rowid starts at 1)
-    adjusted_indices = [index + 1 for index in flat_indices]
-    placeholders = ", ".join("?" for _ in adjusted_indices)
-
-    if not adjusted_indices:
-        raise ValueError("No indices provided for metadata retrieval.")
-    
-    query = f"SELECT id, url, description, aspect_ratio FROM metadata WHERE rowid IN ({placeholders})"
-    
-    try:
-        cursor.execute(query, adjusted_indices)
-    except sqlite3.Error as e:
-        conn.close()
-        raise RuntimeError(f"Database query failed: {e}")
-    results = cursor.fetchall()
-    if not results:
-        print("No results found. Ensure FAISS index and database are synchronized.")  # Debugging log
-    conn.close()
-    return results
+index_ip = faiss.read_index(INDEX_IP_PATH)
+index_l2 = faiss.read_index(INDEX_L2_PATH)
 
 def search_by_text(query: str):
     inputs = processor(text=[query], return_tensors="pt", padding=True)
     text_embedding = model.get_text_features(**inputs).detach().numpy()
-    query_vector = text_embedding / np.linalg.norm(text_embedding)
-    return search_faiss(query_vector)
+    text_embedding_normalized = text_embedding / np.linalg.norm(text_embedding)
+    _, index = index_ip.search(text_embedding_normalized, k=1)
+    
+    meta_data = get_matadata_by_index("models/metadata.db", index[0][0])
+    query_vector = index_l2.reconstruct(int(index[0]))
+    # Ensure query_vector is 2D for FAISS search
+    query_vector = np.array([query_vector])  
+    return search_faiss(query_vector, index=index_l2, best_search=meta_data, best_index=index[0][0])
 
 def search_by_image(image: UploadFile):
     image_bytes = image.file.read()
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     inputs = processor(images=[img], return_tensors="pt")
     image_embedding = model.get_image_features(**inputs).detach().numpy()
-    query_vector = image_embedding / np.linalg.norm(image_embedding)
-    return search_faiss(query_vector)    
+    image_embedding_normalized = image_embedding / np.linalg.norm(image_embedding)
+    _, index = index_ip.search(image_embedding_normalized, k=1)
+
+    meta_data = get_matadata_by_index("models/metadata.db", index[0][0])
+    query_vector = index_l2.reconstruct(int(index[0]))
+    # Ensure query_vector is 2D for FAISS search
+    query_vector = np.array([query_vector]) 
+    return search_faiss(query_vector, index=index_l2, best_search=meta_data, best_index=index[0][0])    
 
 
-def search_faiss(query_vector: np.ndarray, k=6):
+def search_faiss(query_vector: np.ndarray, k=6, index=None, best_search=None, best_index=None):
+    if index is None:
+        raise ValueError("Index must be provided for search.")
+
     _distances, all_indices = index.search(query_vector, k=100)
     indices = all_indices[0]
 
     all_metadata = get_metadata_by_indices("models/metadata.db", all_indices.tolist())
-    all_embeddings = [index.reconstruct(int(idx)) for idx in all_indices[0]]
+    all_embeddings = [index.reconstruct(int(idx)) for idx in indices]
 
-    # Separate best match and rest
-    best_index = int(indices[0])
-    best_embedding = all_embeddings[0]
-    best_metadata = all_metadata[0]
-    
-    remaining_embeddings = all_embeddings[1:]
-    remaining_indices = indices[1:]
+    if best_index is not None and best_search is not None:
+        best_index = int(best_index)
+        best_embedding = query_vector[0]
+        best_metadata = best_search
+        remaining_embeddings = all_embeddings
+        remaining_indices = indices
+    else:
+        # Separate best match and rest
+        best_index = int(indices[0])
+        best_embedding = all_embeddings[0]
+        best_metadata = all_metadata[0]
+        remaining_embeddings = all_embeddings[1:]
+        remaining_indices = indices[1:]
     
     # Cluster remaining 99 into 6 clusters
     kmeans = KMeans(n_clusters=k, random_state=42).fit(remaining_embeddings)
@@ -95,40 +93,37 @@ def search_faiss(query_vector: np.ndarray, k=6):
     centroid_metadata = get_metadata_by_indices("models/metadata.db", [centroid_indices])
     centroid_embeddings = [index.reconstruct(i) for i in centroid_indices]
 
-
-    # print(f"id: {best_metadata[0]}, url: {best_metadata[1]}, desc: {best_metadata[2]}")
-    # for i in range (k):
-    #     print(f"Index: {int(centroid_indices[i])}")
-    #     print(f"Embeddings: for {i}")
-    #     print(f"Metadata-> id: {centroid_metadata[i][0]}, url: {centroid_metadata[i][1]}, desc: {centroid_metadata[i][2]}")
-
-    print(f"metadata: {best_metadata[1]}")    
-    
-    # Return results
     return {
         "best_match": {
             "index": best_index,
             "embeddings": best_embedding.tolist(),
-            "metadata": {"id": best_metadata[0], "url": best_metadata[1], "desc": best_metadata[2], "aspectRatio": best_metadata[3]}
+            "metadata": {
+                "id": best_metadata[0],
+                "url": best_metadata[1],
+                "desc": best_metadata[2],
+                "aspectRatio": best_metadata[3]
+            }
         },
-               "clusters": [
+        "clusters": [
             {
                 "index": int(centroid_indices[i]),
                 "embeddings": centroid_embeddings[i].tolist(),
-                "metadata":{"id": centroid_metadata[i][0], "url": centroid_metadata[i][1], "desc": centroid_metadata[i][2], "aspectRatio": centroid_metadata[i][3]}
+                "metadata":{
+                    "id": centroid_metadata[i][0], 
+                    "url": centroid_metadata[i][1], 
+                    "desc": centroid_metadata[i][2], 
+                    "aspectRatio": centroid_metadata[i][3]
+                }
             }
             for i in range(k)
         ]
     }
 
 def navigate_in_embedding_space(current_embedding, delta, step_size, k=6):
-    # Step in the given direction
-    best_embedding = np.array(current_embedding)
+    current_embedding = np.array(current_embedding)
     delta_vector = np.array(delta)
     step_size = step_size if step_size else 1.0
 
-    # Apply step size
-    new_embedding = best_embedding + step_size * delta_vector
-    new_embedding /= np.linalg.norm(new_embedding)
+    new_embedding = current_embedding + step_size * delta_vector
 
-    return search_faiss(np.array([new_embedding]))
+    return search_faiss(np.array([new_embedding]), index=index_l2)
