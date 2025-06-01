@@ -1,5 +1,4 @@
-import sqlite3
-from fastapi import HTTPException, UploadFile
+from fastapi import UploadFile
 import numpy as np
 from transformers import CLIPProcessor, CLIPModel
 from PIL import Image
@@ -7,6 +6,7 @@ import io
 import faiss
 from sklearn.cluster import KMeans
 from src.meta_data_db import get_metadata_by_indices, get_matadata_by_index
+from src.utils import normalize
 
 # Load CLIP model & processor
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
@@ -22,7 +22,7 @@ index_l2 = faiss.read_index(INDEX_L2_PATH)
 def search_by_text(query: str):
     inputs = processor(text=[query], return_tensors="pt", padding=True)
     text_embedding = model.get_text_features(**inputs).detach().numpy()
-    text_embedding_normalized = text_embedding / np.linalg.norm(text_embedding)
+    text_embedding_normalized = normalize(text_embedding)
     _, index = index_ip.search(text_embedding_normalized, k=1)
     
     meta_data = get_matadata_by_index("models/metadata.db", index[0][0])
@@ -36,7 +36,7 @@ def search_by_image(image: UploadFile):
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     inputs = processor(images=[img], return_tensors="pt")
     image_embedding = model.get_image_features(**inputs).detach().numpy()
-    image_embedding_normalized = image_embedding / np.linalg.norm(image_embedding)
+    image_embedding_normalized = normalize(image_embedding)
     _, index = index_ip.search(image_embedding_normalized, k=1)
 
     meta_data = get_matadata_by_index("models/metadata.db", index[0][0])

@@ -24,7 +24,8 @@ clip-image-search/
 │   │   ├── app.py                     # FastAPI app entry point
 │   │   ├── meta_data_db.py            # Metadata DB logic
 │   │   ├── process_images_from_tsv.py # Script to process images & embeddings
-│   │   └── search.py                  # Search and clustering logic
+│   │   ├── search.py                  # Search and clustering logic
+│   │   └── utils.py                   # Utilities
 │   └── requirements.txt               # Dependencies
 └── README.md
 ```
