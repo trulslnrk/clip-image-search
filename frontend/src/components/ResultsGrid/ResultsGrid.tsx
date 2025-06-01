@@ -11,17 +11,15 @@ interface IProps {
 export function ResultsGrid(props: IProps) {
   const { results, onNavigate } = props;
   const [stepSize, setStepSize] = useState(1.0);
-  const [shownResults, setShownResults] = useState<ISearchResults | undefined>(
-    results
-  );
   const [history, setHistory] = useState<ISearchResults[]>([]);
 
-  if (!shownResults || !shownResults.best_match) {
+  if (!results || !results.best_match) {
+    console.log;
     return <p style={{ textAlign: "center" }}>No results found.</p>;
   }
 
-  const center = shownResults.best_match.metadata;
-  const bestEmbedding = shownResults.best_match.embeddings;
+  const center = results.best_match.metadata;
+  const bestEmbedding = results.best_match.embeddings;
 
   const handleClick = async (cluster: IImageData) => {
     const delta = cluster.embeddings.map((val, i) => val - bestEmbedding[i]);
@@ -45,8 +43,7 @@ export function ResultsGrid(props: IProps) {
 
       const newResults: ISearchResults = await response.json();
 
-      setHistory((prevHistory) => [...prevHistory, shownResults]);
-      setShownResults(newResults);
+      setHistory((prevHistory) => [...prevHistory, results]);
       onNavigate?.(newResults);
     } catch (err) {
       console.error("Error navigating:", err);
@@ -57,7 +54,6 @@ export function ResultsGrid(props: IProps) {
     if (history.length > 0) {
       const previousResults = history[history.length - 1];
       setHistory((prevHistory) => prevHistory.slice(0, -1));
-      setShownResults(previousResults);
       onNavigate?.(previousResults);
     }
   };
@@ -68,7 +64,10 @@ export function ResultsGrid(props: IProps) {
       <div style={{ textAlign: "center" }}>
         <ImageWithSkeleton
           center={false}
-          src={`${cluster.metadata.url}?idix=${cluster.metadata.id}&fm=webp&q=20&w=1000&h=${1000 / cluster.metadata.aspectRatio}`}
+          // We need to use cache busting because if the src is exactly the same,
+          // and the browser has it in memory, React won’t re-render the <img>,
+          // so onLoad never fires and loaded state stays false.
+          src={`${cluster.metadata.url}?idix=${cluster.metadata.id}&fm=webp&q=10&w=1000&h=${1000 / cluster.metadata.aspectRatio}&cachebust=${Date.now()}`}
           alt={cluster.metadata.description || "Image"}
           width={300}
           height={300}
@@ -158,17 +157,14 @@ export function ResultsGrid(props: IProps) {
             gap: "24px",
           }}
         >
-          {shownResults.clusters[0] &&
-            renderCluster(shownResults.clusters[0], "tl")}
-          {shownResults.clusters[1] &&
-            renderCluster(shownResults.clusters[1], "tr")}
-          {shownResults.clusters[2] &&
-            renderCluster(shownResults.clusters[2], "l")}
+          {results.clusters[0] && renderCluster(results.clusters[0], "tl")}
+          {results.clusters[1] && renderCluster(results.clusters[1], "tr")}
+          {results.clusters[2] && renderCluster(results.clusters[2], "l")}
 
           {/* Center (Best Match) */}
           <div style={{ gridArea: "c", textAlign: "center" }}>
             <ImageWithSkeleton
-              src={`${center.url}?idix=${center.id}&fm=webp&q=20&w=1000&h=${1000 / center.aspectRatio}`}
+              src={`${center.url}?idix=${center.id}&fm=webp&q=10&w=1000&h=${1000 / center.aspectRatio}&cachebust=${Date.now()}`}
               alt="Best match"
               width={300}
               height={300}
@@ -183,12 +179,9 @@ export function ResultsGrid(props: IProps) {
               Best Match
             </div>
           </div>
-          {shownResults.clusters[3] &&
-            renderCluster(shownResults.clusters[3], "r")}
-          {shownResults.clusters[4] &&
-            renderCluster(shownResults.clusters[4], "bl")}
-          {shownResults.clusters[5] &&
-            renderCluster(shownResults.clusters[5], "br")}
+          {results.clusters[3] && renderCluster(results.clusters[3], "r")}
+          {results.clusters[4] && renderCluster(results.clusters[4], "bl")}
+          {results.clusters[5] && renderCluster(results.clusters[5], "br")}
         </div>
       </div>
     </div>

@@ -21,12 +21,14 @@ export const ImageWithSkeleton: React.FC<IProps> = (props) => {
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    // Reset loaded state to false on every render
     setLoaded(false);
 
-    // Check if the image is already loaded (e.g., from cache)
-    if (imgRef.current?.complete) {
-      setLoaded(true);
+    const img = imgRef.current;
+
+    if (img) {
+      if (img.complete && img.naturalWidth !== 0) {
+        setLoaded(true);
+      }
     }
   }, [htmlProps.src]);
 
@@ -59,9 +61,12 @@ export const ImageWithSkeleton: React.FC<IProps> = (props) => {
         data-center={center}
         {...htmlProps}
         onLoad={(e) => {
-          setLoaded(true);
+          if (!loaded) {
+            setLoaded(true);
+          }
           props.onLoad?.(e);
         }}
+        onError={() => setLoaded(true)}
         style={{
           width: "290px",
           height: "290px",
