@@ -1,6 +1,5 @@
 import sqlite3
 
-# Create SQLite database and table
 def create_metadata_db(db_file: str):
     """
     Create a SQLite database with a metadata table if it doesn't already exist.

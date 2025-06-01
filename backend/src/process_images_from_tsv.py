@@ -46,7 +46,7 @@ def process_images_from_tsv(tsv_path="data/photos.tsv000"):
             description = row.get("photo_description", "")
 
             try:
-                # Download and process image
+                # Process image
                 response = requests.get(image_url, timeout=10)
                 response.raise_for_status()
                 image = Image.open(BytesIO(response.content)).convert("RGB")

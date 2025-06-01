@@ -64,9 +64,10 @@ export function ResultsGrid(props: IProps) {
       <div style={{ textAlign: "center" }}>
         <ImageWithSkeleton
           center={false}
-          // We need to use cache busting because if the src is exactly the same,
+          // Need to use cache busting because if the src is exactly the same,
           // and the browser has it in memory, React won’t re-render the <img>,
           // so onLoad never fires and loaded state stays false.
+          // The drawback is that the image will be reloaded every time
           src={`${cluster.metadata.url}?idix=${cluster.metadata.id}&fm=webp&q=10&w=1000&h=${1000 / cluster.metadata.aspectRatio}&cachebust=${Date.now()}`}
           alt={cluster.metadata.description || "Image"}
           width={300}
@@ -164,6 +165,10 @@ export function ResultsGrid(props: IProps) {
           {/* Center (Best Match) */}
           <div style={{ gridArea: "c", textAlign: "center" }}>
             <ImageWithSkeleton
+              // Need to use cache busting because if the src is exactly the same,
+              // and the browser has it in memory, React won’t re-render the <img>,
+              // so onLoad never fires and loaded state stays false.
+              // The drawback is that the image will be reloaded every time
               src={`${center.url}?idix=${center.id}&fm=webp&q=10&w=1000&h=${1000 / center.aspectRatio}&cachebust=${Date.now()}`}
               alt="Best match"
               width={300}

@@ -193,9 +193,10 @@ function RouteComponent() {
             Text searched by {query}
           </h3>
           <ImageWithSkeleton
-            // We need to use cache busting because if the src is exactly the same,
+            // Need to use cache busting because if the src is exactly the same,
             // and the browser has it in memory, React won’t re-render the <img>,
             // so onLoad never fires and loaded state stays false.
+            // The drawback is that the image will be reloaded every time
             src={`${results.best_match.metadata.url}?idix=${results.best_match.metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.best_match.metadata.aspectRatio}&cachebust=${Date.now()}`}
             alt={results.best_match.metadata.description || "result"}
             width={400}

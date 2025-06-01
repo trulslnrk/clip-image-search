@@ -107,7 +107,6 @@ def search_faiss(query_vector: np.ndarray, k=6, index=None, best_search=None, be
         remaining_embeddings = all_embeddings[1:]
         remaining_indices = indices[1:]
     
-    # Cluster remaining 99 into 6 clusters
     kmeans = KMeans(n_clusters=k, random_state=42).fit(remaining_embeddings)
 
      # Find nearest point to each centroid
@@ -116,7 +115,7 @@ def search_faiss(query_vector: np.ndarray, k=6, index=None, best_search=None, be
     centroids = kmeans.cluster_centers_
     for i in range(k):
         cluster_points = remaining_embeddings[kmeans.labels_ == i]
-        cluster_faiss_indices = remaining_indices[kmeans.labels_ == i]  # Track actual FAISS indices
+        cluster_faiss_indices = remaining_indices[kmeans.labels_ == i]
 
         if len(cluster_points) == 0:
             continue
