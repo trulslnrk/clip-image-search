@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { IImageData, ISearchResults } from "../../models/Search";
 import { ImageWithSkeleton } from "../ImageWithSkeleton/ImageWithSkeleton";
+import "./ResultsGrid.scss";
 
 interface IProps {
   results?: ISearchResults;
@@ -10,6 +11,10 @@ interface IProps {
 export function ResultsGrid(props: IProps) {
   const { results, onNavigate } = props;
   const [stepSize, setStepSize] = useState(1.0);
+  const [shownResults, setShownResults] = useState<ISearchResults | undefined>(
+    results
+  );
+  const [history, setHistory] = useState<ISearchResults[]>([]);
 
   if (!results || !results.best_match) {
     return <p style={{ textAlign: "center" }}>No results found.</p>;
@@ -39,9 +44,21 @@ export function ResultsGrid(props: IProps) {
       }
 
       const newResults: ISearchResults = await response.json();
+
+      setHistory((prevHistory) => [...prevHistory, results]);
+      setShownResults(newResults);
       onNavigate?.(newResults);
     } catch (err) {
       console.error("Error navigating:", err);
+    }
+  };
+
+  const handleBackClick = () => {
+    if (history.length > 0) {
+      const previousResults = history[history.length - 1];
+      setHistory((prevHistory) => prevHistory.slice(0, -1));
+      setShownResults(previousResults);
+      onNavigate?.(previousResults);
     }
   };
 
@@ -94,22 +111,42 @@ export function ResultsGrid(props: IProps) {
   return (
     <div style={{ padding: "2rem" }}>
       {/* Step Size Control */}
-      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-        <label style={{ marginRight: "0.5rem", fontWeight: "bold" }}>
-          Step Size:
-        </label>
-        <input
-          type="range"
-          min="0.1"
-          max="10"
-          step="0.1"
-          value={stepSize}
-          onChange={(e) => setStepSize(parseFloat(e.target.value))}
-          style={{ width: "300px", verticalAlign: "middle" }}
-        />
-        <span style={{ marginLeft: "1rem", fontSize: "1rem" }}>
-          {stepSize.toFixed(1)}
-        </span>
+      <div
+        style={{
+          textAlign: "center",
+          marginBottom: "2rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "1rem",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <button
+            onClick={handleBackClick}
+            disabled={history.length === 0}
+            className="back-button"
+          >
+            Back
+          </button>
+        </div>
+        <div>
+          <label style={{ marginRight: "0.5rem", fontWeight: "bold" }}>
+            Step Size:
+          </label>
+          <input
+            type="range"
+            min="0.1"
+            max="10"
+            step="0.1"
+            value={stepSize}
+            onChange={(e) => setStepSize(parseFloat(e.target.value))}
+            style={{ width: "300px", verticalAlign: "middle" }}
+          />
+          <span style={{ marginLeft: "1rem", fontSize: "1rem" }}>
+            {stepSize.toFixed(1)}
+          </span>
+        </div>
       </div>
 
       {/* Grid Layout */}

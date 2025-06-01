@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./ImageWithSkeleton.scss";
 
 interface IProps extends React.ImgHTMLAttributes<HTMLImageElement> {
@@ -18,10 +18,16 @@ export const ImageWithSkeleton: React.FC<IProps> = (props) => {
     ...htmlProps
   } = props;
   const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     // Reset loaded state to false on every render
     setLoaded(false);
+
+    // Check if the image is already loaded (e.g., from cache)
+    if (imgRef.current?.complete) {
+      setLoaded(true);
+    }
   }, [htmlProps.src]);
 
   return (
