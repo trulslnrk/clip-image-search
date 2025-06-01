@@ -24,6 +24,14 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const [results, setResults] = useState<ISearchResults | undefined>();
+  const [cacheBustingKey, setCacheBustingKey] = useState(crypto.randomUUID());
+
+  // This is to make sure that whenever we set new results from the search we also
+  // generate a new cache busting key so that the image will be reloaded
+  function handleResults(newResults: ISearchResults) {
+    setResults(newResults);
+    setCacheBustingKey(crypto.randomUUID());
+  }
 
   return (
     <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "2rem" }}>
@@ -38,9 +46,10 @@ function HomePage() {
         Search by text or choose an image to walk through CLIP space
         <HelpButtonSearch />
       </h1>
-      <SearchBar onResults={setResults} />
+      <SearchBar onResults={(data) => handleResults(data)} />
       <ResultsGrid
         results={results}
+        searchCacheBustingKey={cacheBustingKey}
         onNavigate={(newResults) => setResults(newResults)}
       />
     </div>

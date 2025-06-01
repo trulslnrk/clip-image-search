@@ -5,16 +5,17 @@ import "./ResultsGrid.scss";
 
 interface IProps {
   results?: ISearchResults;
+  searchCacheBustingKey?: string;
   onNavigate?: (newResults: ISearchResults) => void;
 }
 
 export function ResultsGrid(props: IProps) {
-  const { results, onNavigate } = props;
+  const { results, searchCacheBustingKey, onNavigate } = props;
   const [stepSize, setStepSize] = useState(1.0);
   const [history, setHistory] = useState<ISearchResults[]>([]);
+  const [cacheBustingKey, setCacheBustingKey] = useState(searchCacheBustingKey);
 
   if (!results || !results.best_match) {
-    console.log;
     return <p style={{ textAlign: "center" }}>No results found.</p>;
   }
 
@@ -44,6 +45,7 @@ export function ResultsGrid(props: IProps) {
       const newResults: ISearchResults = await response.json();
 
       setHistory((prevHistory) => [...prevHistory, results]);
+      setCacheBustingKey(crypto.randomUUID());
       onNavigate?.(newResults);
     } catch (err) {
       console.error("Error navigating:", err);
@@ -54,6 +56,7 @@ export function ResultsGrid(props: IProps) {
     if (history.length > 0) {
       const previousResults = history[history.length - 1];
       setHistory((prevHistory) => prevHistory.slice(0, -1));
+      setCacheBustingKey(crypto.randomUUID());
       onNavigate?.(previousResults);
     }
   };
@@ -68,7 +71,7 @@ export function ResultsGrid(props: IProps) {
           // and the browser has it in memory, React won’t re-render the <img>,
           // so onLoad never fires and loaded state stays false.
           // The drawback is that the image will be reloaded every time
-          src={`${cluster.metadata.url}?idix=${cluster.metadata.id}&fm=webp&q=10&w=1000&h=${1000 / cluster.metadata.aspectRatio}&cachebust=${Date.now()}`}
+          src={`${cluster.metadata.url}?idix=${cluster.metadata.id}&fm=webp&q=10&w=1000&h=${1000 / cluster.metadata.aspectRatio}&cachebust=${cacheBustingKey}`}
           alt={cluster.metadata.description || "Image"}
           width={300}
           height={300}
@@ -169,7 +172,7 @@ export function ResultsGrid(props: IProps) {
               // and the browser has it in memory, React won’t re-render the <img>,
               // so onLoad never fires and loaded state stays false.
               // The drawback is that the image will be reloaded every time
-              src={`${center.url}?idix=${center.id}&fm=webp&q=10&w=1000&h=${1000 / center.aspectRatio}&cachebust=${Date.now()}`}
+              src={`${center.url}?idix=${center.id}&fm=webp&q=10&w=1000&h=${1000 / center.aspectRatio}&cachebust=${cacheBustingKey}`}
               alt="Best match"
               width={300}
               height={300}

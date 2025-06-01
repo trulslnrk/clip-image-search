@@ -18,8 +18,8 @@ clip-image-search/
 │   │   ├── models/                    # Shared TypeScript models
 │   │   └── routes/                    # File-based routing (TanStack Router)
 ├── backend/                           # Python FastAPI backend
-│   ├── models/                        # FAISS indexes and SQLite DB file
 │   ├── data_photos/                   # Metadata for all images
+│   ├── models/                        # FAISS indexes and SQLite DB file
 │   ├── src/
 │   │   ├── app.py                     # FastAPI app entry point
 │   │   ├── meta_data_db.py            # Metadata DB logic

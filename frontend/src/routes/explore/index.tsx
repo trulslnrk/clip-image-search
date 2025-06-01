@@ -20,6 +20,14 @@ function RouteComponent() {
   const [stepSize, setStepSize] = useState<number>(0.5);
   const [results, setResults] = useState<ISearchResults | null>(null);
   const [query, setQuery] = useState("dog");
+  const [cacheBustingKey, setCacheBustingKey] = useState(crypto.randomUUID());
+
+  // This is to make sure that whenever we set new results we also
+  // generate a new cache busting key so that the image will be reloaded
+  function handleResults(newResults: ISearchResults) {
+    setResults(newResults);
+    setCacheBustingKey(crypto.randomUUID());
+  }
 
   // Load the default embedding from a text search, for example
   useEffect(() => {
@@ -28,7 +36,7 @@ function RouteComponent() {
       const data: ISearchResults = await response.json();
       setInitialEmbedding(data.best_match.embeddings);
       setCurrentEmbedding(data.best_match.embeddings);
-      setResults(data);
+      handleResults(data);
     };
     fetchInitial();
   }, []);
@@ -52,7 +60,7 @@ function RouteComponent() {
     });
 
     const newResults: ISearchResults = await response.json();
-    setResults(newResults);
+    handleResults(newResults);
     setCurrentEmbedding(newResults.best_match.embeddings);
   };
 
@@ -77,7 +85,11 @@ function RouteComponent() {
         <HelpButtonNavigate />
       </h1>
 
-      <SearchBar onResults={setResults} onSubmit={setQuery} images={false} />
+      <SearchBar
+        onResults={(data) => handleResults(data)}
+        onSubmit={setQuery}
+        images={false}
+      />
 
       {/* Step Size Slider */}
       <div style={{ marginBottom: "1.5rem" }}>
@@ -197,7 +209,7 @@ function RouteComponent() {
             // and the browser has it in memory, React won’t re-render the <img>,
             // so onLoad never fires and loaded state stays false.
             // The drawback is that the image will be reloaded every time
-            src={`${results.best_match.metadata.url}?idix=${results.best_match.metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.best_match.metadata.aspectRatio}&cachebust=${Date.now()}`}
+            src={`${results.best_match.metadata.url}?idix=${results.best_match.metadata.id}&fm=webp&q=20&w=1000&h=${1000 / results.best_match.metadata.aspectRatio}&cachebust=${cacheBustingKey}`}
             alt={results.best_match.metadata.description || "result"}
             width={400}
             height={400}
