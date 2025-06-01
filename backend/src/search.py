@@ -5,33 +5,54 @@ from PIL import Image
 import io
 import faiss
 from sklearn.cluster import KMeans
-from src.meta_data_db import get_metadata_by_indices, get_matadata_by_index
+from src.meta_data_db import get_metadata_by_indices, get_metadata_by_index
 from src.utils import normalize
 
-# Load CLIP model & processor
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-# Load FAISS index
 INDEX_IP_PATH = "models/faiss_index_ip.bin"
 INDEX_L2_PATH = "models/faiss_index_l2.bin"
 DB_FILE = "models/metadata.db"
+
 index_ip = faiss.read_index(INDEX_IP_PATH)
 index_l2 = faiss.read_index(INDEX_L2_PATH)
 
 def search_by_text(query: str):
+    """
+    Perform a search using a text query.
+
+    This function generates a CLIP embedding from the input text, normalizes it,
+    and finds the most similar image using cosine similarity (via `index_ip`). It
+    then reconstructs the corresponding unnormalized embedding.
+    Args:
+        query (str): The input text query to search for.
+    Returns:
+        dict: The result of the FAISS search, including metadata and the best match index.
+    """
     inputs = processor(text=[query], return_tensors="pt", padding=True)
     text_embedding = model.get_text_features(**inputs).detach().numpy()
     text_embedding_normalized = normalize(text_embedding)
     _, index = index_ip.search(text_embedding_normalized, k=1)
     
-    meta_data = get_matadata_by_index("models/metadata.db", index[0][0])
+    meta_data = get_metadata_by_index("models/metadata.db", index[0][0])
     query_vector = index_l2.reconstruct(int(index[0]))
     # Ensure query_vector is 2D for FAISS search
     query_vector = np.array([query_vector])  
     return search_faiss(query_vector, index=index_l2, best_search=meta_data, best_index=index[0][0])
 
 def search_by_image(image: UploadFile):
+    """
+    Perform a search using an uploaded image.
+
+    This function generates a CLIP embedding from the uploaded image, normalizes it,
+    and finds the most similar image using cosine similarity (via `index_ip`). It
+    then reconstructs the corresponding unnormalized embedding.
+    Args:
+        image (UploadFile): The uploaded image file to be used for the search.
+    Returns:
+        dict: The result of the FAISS search, including metadata and the best match index.
+    """
     image_bytes = image.file.read()
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     inputs = processor(images=[img], return_tensors="pt")
@@ -39,7 +60,7 @@ def search_by_image(image: UploadFile):
     image_embedding_normalized = normalize(image_embedding)
     _, index = index_ip.search(image_embedding_normalized, k=1)
 
-    meta_data = get_matadata_by_index("models/metadata.db", index[0][0])
+    meta_data = get_metadata_by_index("models/metadata.db", index[0][0])
     query_vector = index_l2.reconstruct(int(index[0]))
     # Ensure query_vector is 2D for FAISS search
     query_vector = np.array([query_vector]) 
@@ -47,6 +68,22 @@ def search_by_image(image: UploadFile):
 
 
 def search_faiss(query_vector: np.ndarray, k=6, index=None, best_search=None, best_index=None):
+    """
+    Run a FAISS search and cluster the top results.
+    Given a query embedding, this function performs a FAISS search to retrieve
+    the top 100 results, clusters them using KMeans, and returns the best match
+    plus one representative image from each cluster.
+
+    Args:
+        query_vector (np.ndarray): Query embedding, shape (1, d).
+        k (int, optional): Number of clusters. Defaults to 6.
+        index (faiss.Index): FAISS index to search.
+        best_search (tuple, optional): Metadata for the best match.
+        best_index (int, optional): FAISS index of the best match.
+    Returns:
+        dict: A dictionary with keys "best_match" and "clusters", each with
+        metadata and embedding information.
+    """
     if index is None:
         raise ValueError("Index must be provided for search.")
 
@@ -120,6 +157,20 @@ def search_faiss(query_vector: np.ndarray, k=6, index=None, best_search=None, be
     }
 
 def navigate_in_embedding_space(current_embedding, delta, step_size, k=6):
+    """
+    Navigate in the embedding space by applying a directional delta vector 
+    scaled by a step size to the current embedding, and retrieve the nearest 
+    neighbors using FAISS.
+
+    Args:
+        current_embedding (np.ndarray): The current embedding vector.
+        delta (np.ndarray): Directional delta vector.
+        step_size (float): Scaling factor for delta. Defaults to 1.0.
+        k (int, optional): Number of clusters. Defaults to 6.
+
+    Returns:
+        dict: Search result after moving in the embedding space.
+    """
     current_embedding = np.array(current_embedding)
     delta_vector = np.array(delta)
     step_size = step_size if step_size else 1.0

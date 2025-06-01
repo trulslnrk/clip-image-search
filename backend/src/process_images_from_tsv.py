@@ -9,25 +9,16 @@ from meta_data_db import create_metadata_db, insert_metadata
 import faiss
 import csv
 
-# Paths
 DATA_DIR = "data/"
 EMBEDDINGS_FILE_IP = "models/faiss_index_ip_2.bin"
 EMBEDDINGS_FILE_L2 = "models/faiss_index_l2_2.bin"
 DB_FILE = "models/metadata.db"
 
-# Constants
-EMBEDDING_DIM = 512  # CLIP base output
+# CLIP base output
+EMBEDDING_DIM = 512
 
-# Load CLIP model & processor
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-
-# 
-# Normalize value within min-max to range [0,1000]
-#  
-def normalizeValueWithinRange(min, max, value):
-  return ((value - min) / (max - min)) * 1000
-
 
 def generate_embedding(image: Image.Image):
     inputs = processor(images=image, return_tensors="pt")

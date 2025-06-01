@@ -2,6 +2,11 @@ import sqlite3
 
 # Create SQLite database and table
 def create_metadata_db(db_file: str):
+    """
+    Create a SQLite database with a metadata table if it doesn't already exist.
+    Args:
+        db_file (str): Path to the SQLite database file.
+    """
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
     cursor.execute("""
@@ -15,8 +20,14 @@ def create_metadata_db(db_file: str):
     conn.commit()
     conn.close()
 
-# Insert metadata into the database
 def insert_metadata(db_file: str, metadata: list):
+    """
+    Inserts metadata records into the metadata table of the specified SQLite database.
+
+    Args:
+        db_file (str): Path to the SQLite database file.
+        metadata (list): A list of tuples (id, url, aspect_ratio, description) to insert.
+    """
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
     cursor.executemany("""
@@ -26,7 +37,19 @@ def insert_metadata(db_file: str, metadata: list):
     conn.commit()
     conn.close()
 
+
 def get_metadata_by_indices(db_file: str, indices: list):
+    """
+    Retrieve multiple metadata records from the SQLite database using FAISS indices.
+    This function adjusts the provided FAISS indices (which start at 0) to match
+    the SQLite rowid (which starts at 1) and retrieves the corresponding metadata
+    entries from the database.
+    Args:
+        db_file (str): Path to the SQLite database file.
+        indices (list): A list of FAISS indices (ints or list of lists).
+    Returns:
+        list: A list of tuples (id, url, description, aspect_ratio) for each matching record.
+    """
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
     # Ensure indices is a flat list
@@ -52,7 +75,16 @@ def get_metadata_by_indices(db_file: str, indices: list):
     conn.close()
     return results
 
-def get_matadata_by_index(db_file: str, index: int):
+def get_metadata_by_index(db_file: str, index: int):
+    """
+    Retrieve a single metadata record from the SQLite database using a FAISS index.
+    Args:
+        db_file (str): Path to the SQLite database file.
+        index (int): FAISS index of the record to retrieve.
+    Returns:
+        tuple: A tuple (id, url, description, aspect_ratio) for the matching record.
+
+    """
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
     
