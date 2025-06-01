@@ -5,7 +5,6 @@ export function Header() {
   const location = useLocation();
   const currentRoute = location.pathname;
 
-  console.log(currentRoute);
   return (
     <header className="header">
       <nav className="nav">

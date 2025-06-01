@@ -1,0 +1,19 @@
+.back-button {
+  padding: 0.5rem 8rem;
+  background-color: #f44336;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #d32f2f;
+  }
+
+  &:disabled {
+    cursor: default;
+    background-color: #d3d3d3;
+    color: #a9a9a9;
+    opacity: 0.6;
+  }
+}
