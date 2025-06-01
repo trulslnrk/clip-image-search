@@ -5,7 +5,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ResultsGrid } from "../components/ResultsGrid/ResultsGrid";
 import { ISearchResults } from "../models/Search";
 import "./index.scss";
-import { HelpButton } from "../components/HelpButton/HelpButton";
+import { HelpButtonSearch } from "../components/HelpButton/HelpButtonSearch";
 
 export interface ImageMetadata {
   title: string;
@@ -36,7 +36,7 @@ function HomePage() {
         }}
       >
         Search by text or choose an image to walk through CLIP space
-        <HelpButton />
+        <HelpButtonSearch />
       </h1>
       <SearchBar onResults={setResults} />
       <ResultsGrid

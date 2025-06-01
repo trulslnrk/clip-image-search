@@ -16,12 +16,12 @@ export function ResultsGrid(props: IProps) {
   );
   const [history, setHistory] = useState<ISearchResults[]>([]);
 
-  if (!results || !results.best_match) {
+  if (!shownResults || !shownResults.best_match) {
     return <p style={{ textAlign: "center" }}>No results found.</p>;
   }
 
-  const center = results.best_match.metadata;
-  const bestEmbedding = results.best_match.embeddings;
+  const center = shownResults.best_match.metadata;
+  const bestEmbedding = shownResults.best_match.embeddings;
 
   const handleClick = async (cluster: IImageData) => {
     const delta = cluster.embeddings.map((val, i) => val - bestEmbedding[i]);
@@ -45,7 +45,7 @@ export function ResultsGrid(props: IProps) {
 
       const newResults: ISearchResults = await response.json();
 
-      setHistory((prevHistory) => [...prevHistory, results]);
+      setHistory((prevHistory) => [...prevHistory, shownResults]);
       setShownResults(newResults);
       onNavigate?.(newResults);
     } catch (err) {
@@ -158,9 +158,12 @@ export function ResultsGrid(props: IProps) {
             gap: "24px",
           }}
         >
-          {results.clusters[0] && renderCluster(results.clusters[0], "tl")}
-          {results.clusters[1] && renderCluster(results.clusters[1], "tr")}
-          {results.clusters[2] && renderCluster(results.clusters[2], "l")}
+          {shownResults.clusters[0] &&
+            renderCluster(shownResults.clusters[0], "tl")}
+          {shownResults.clusters[1] &&
+            renderCluster(shownResults.clusters[1], "tr")}
+          {shownResults.clusters[2] &&
+            renderCluster(shownResults.clusters[2], "l")}
 
           {/* Center (Best Match) */}
           <div style={{ gridArea: "c", textAlign: "center" }}>
@@ -180,9 +183,12 @@ export function ResultsGrid(props: IProps) {
               Best Match
             </div>
           </div>
-          {results.clusters[3] && renderCluster(results.clusters[3], "r")}
-          {results.clusters[4] && renderCluster(results.clusters[4], "bl")}
-          {results.clusters[5] && renderCluster(results.clusters[5], "br")}
+          {shownResults.clusters[3] &&
+            renderCluster(shownResults.clusters[3], "r")}
+          {shownResults.clusters[4] &&
+            renderCluster(shownResults.clusters[4], "bl")}
+          {shownResults.clusters[5] &&
+            renderCluster(shownResults.clusters[5], "br")}
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ISearchResults } from "../../models/Search";
 import { ImageWithSkeleton } from "../../components/ImageWithSkeleton/ImageWithSkeleton";
 import { SearchBar } from "../../components/SearchBar/SearchBar";
+import { HelpButtonNavigate } from "../../components/HelpButton/HelpButtonNavigate";
 
 export const Route = createFileRoute("/explore/")({
   component: RouteComponent,
@@ -64,9 +65,17 @@ function RouteComponent() {
         fontFamily: "sans-serif",
       }}
     >
-      <h2 style={{ textAlign: "center", marginBottom: "2rem" }}>
+      <h1
+        style={{
+          display: "flex",
+          textAlign: "center",
+          marginBottom: "2rem",
+          gap: "1rem",
+        }}
+      >
         Explore CLIP Embedding Space (1D Walk)
-      </h2>
+        <HelpButtonNavigate />
+      </h1>
 
       <SearchBar onResults={setResults} onSubmit={setQuery} images={false} />
 
