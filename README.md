@@ -34,42 +34,42 @@ clip-image-search/
 Download the code from the zip-file or clone the GitHub repository:
 
 ```bash
-$ git clone https://github.com/trulslnrk/clip-image-search.git
+git clone https://github.com/trulslnrk/clip-image-search.git
 ```
 
 ### Backend
 
 > [!NOTE]
-> **Python 3.10 required:** Some dependencies are not compatible with versions above 3.10.
+> **Python 3.9.6 used while developing:** Some dependencies are not compatible with versions above 3.10.
 
 1. Be sure you are in the correct folder. So from the root directory of this project:
 
 ```bash
-$ cd ./backend
+cd ./backend
 ```
 
 2. It is recommended that you use a virtual environment to install the dependencies. Create a virtual environment:
 
 ```bash
-$ python3 -m venv venv
+python3 -m venv venv
 ```
 
 Activate the virtual environment:
 
 ```bash
-$ source venv/bin/activate
+source venv/bin/activate
 ```
 
 3. Install dependencies:
 
 ```bash
-$ pip3 install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 4. Start the FastAPI server:
 
 ```bash
-$ uvicorn src.app:app --reload
+uvicorn src.app:app --reload
 ```
 
 ### Frontend
@@ -77,25 +77,25 @@ $ uvicorn src.app:app --reload
 1. Open a new terminal window and navigate to the frontend folder:
 
 ```bash
-$ cd ./frontend
+cd ./frontend
 ```
 
 The frontend application and build system runs on node.js. To get up and running:
 
 - Node version is specified in the `.nvmrc` file
-- Install [NVM](https://github.com/nvm-sh/nvm)
-- Run the command `nvm install` from the `frontend` directory to install correct node version
+- Install [NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating) or [Node](https://nodejs.org/en/download) directly
+- Run the command `nvm install` from the `frontend` directory to install correct node version if you choose to use NVM
 
 2. Install dependencies:
 
 ```bash
-$ npm install
+npm install
 ```
 
 3. Run the frontend in dev mode:
 
 ```bash
-$ npm run dev
+npm run dev
 ```
 
 ## Test the program
